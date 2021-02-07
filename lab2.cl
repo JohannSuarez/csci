@@ -16,8 +16,8 @@
 (defun f (N &optional (next 3) (older 1) (recent 1)) 
    (cond
       ((not (integerp N)) nil) ; You will keep these first two lines (the checks)
-      ((< N next) recent)      ; If N is less than three, it just handles the base case, return one (But the first number is actually 0?)
-      (t (f N (+ next 1) recent (+ older recent)))
+      ((< N next) recent)      ; The base case, if N is less than next
+      (t (f N (+ next 1) recent (+ older recent))) ; Just moved fhelper's recursing line over
    )
 )
 
@@ -33,8 +33,8 @@
    
    ; (format t "~A~%" R) This is just a debugging statement.
    (cond 
-      ((not (realp M)) nil)
-      ((null R) nil)
+      ((not (realp M)) nil) ; Nil if M isn't real
+      ((null R) nil) ; nil if R is empty (we need at least one to compare with)
       ; If the head isn't a real number, we recurse without it. 
       ((not (realp (car R))) (gt M (cdr R))) 
       ; If the head of R is greater than M, connect the head of R to the rest of 
@@ -50,9 +50,12 @@
 (defun isTree (tree)
 ; is meant to take a single parameter
    (cond
-      ;((null tree) t)
+      ((null tree) t)
       ; I find that using first, second, and third
       ; is more intuitive than car,cdr,caadr, etc.
+
+      ; Very clear code, just checking that the middle is int, and the right
+      ; and left are lists.
       ((and (listp (first tree)) (integerp (second tree)) (listp (third tree) )) t)
 
       ; If it's not a valid tree, we return nil (specified in video)
@@ -66,10 +69,25 @@
    (format t "called~%")
 
    (cond
+      ; TOOK ME FOREVER TO FIGURE OUT! 
+      ; 4 Hours, 2 existential crisis moments, and 5 Mazzy Star songs later...
+      ; Anyways..
+
+      ; If what we get is just an integer (that's not even in a list),
+      ; it means we've recursed in enough that we can't go any deeper
+      ; so we return it, because it's a leaf of the binary tree.
       ((integerp (first tree)) (first tree))
+
+      ; If the tree's just... empty, we hand back a zero
+      ; because remember we still need to do addition with
+      ; whatever's expecting us when we return from this recursion.
       ((null tree) 0)
       ((not (isTree tree)) nil) ; Keep this. Written in documentation.
-      (t (+ (or (sumTree (first tree)) 0) (second tree) (or (sumTree (third tree)) 0) ))
+
+      ; Immediately add the middle of the tree (because int)
+      ; and add whatever the left and right brings back
+      ; from recursion
+      (t (+ (sumTree (first tree)) (second tree) (sumTree (third tree)) ))
 
    )
    ; If the tree is not empty, we take the current element (middle value)
