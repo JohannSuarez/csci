@@ -29,9 +29,9 @@
 (defun gt (M &rest R)
    ; If R is inside a list, we set R into the first of its element
    ; eliminating the nested list issue.
-   (if (listp (car R)) (setf R (car R)))   
+   (if (listp (car R)) (setf R (first R)))   
    
-   (format t "~A~%" R)
+   ; (format t "~A~%" R) This is just a debugging statement.
    (cond 
       ((not (realp M)) nil)
       ((null R) nil)
@@ -50,13 +50,29 @@
 (defun isTree (tree)
 ; is meant to take a single parameter
    (cond
-      ((null tree) t)
-      ((and (listp (car tree)) (integerp (car (cdr tree))) (listp (cdr (cdr tree)) )) t)
+      ;((null tree) t)
+      ; I find that using first, second, and third
+      ; is more intuitive than car,cdr,caadr, etc.
+      ((and (listp (first tree)) (integerp (second tree)) (listp (third tree) )) t)
 
-      (t "hello")
+      ; If it's not a valid tree, we return nil (specified in video)
+      (t NIL)
    )
 )
 
 (defun sumTree (tree)
+
+   (format t "~A~%" tree)
+   (format t "called~%")
+
+   (cond
+      ((integerp (first tree)) (first tree))
+      ((null tree) 0)
+      ((not (isTree tree)) nil) ; Keep this. Written in documentation.
+      (t (+ (or (sumTree (first tree)) 0) (second tree) (or (sumTree (third tree)) 0) ))
+
    )
+   ; If the tree is not empty, we take the current element (middle value)
+   ; and sum it together with the result of the left side and right side of tree
+)
 
