@@ -1,71 +1,159 @@
-;#! /usr/bin/gcl -f
 
-; let over lambda:
-; ----------------
-;   using let blocks that return functions,
-;   the function returned gives us access to the
-;       "hidden" local variables in the let block
-;   effectively making the function an access method
-;       to private data
+; let-over-labels exercise
+; ------------------------
+; the goal is to write a function, buildTimeTracker, that creates and returns a dispatcher
+;     (following our let-over-labels-over-lambda approach) that keeps track of elapsed time
+;     for a home planet and a fleet of spacecraft travelling from that planet.
+; for each spacecraft, it tracks the speed relative to the home planet (in km/s)
+;     and the time that has elapsed since launch for that spacecraft,
+;     accounting for time dilation (the time that has passed on the home planet will
+;     be greater than the time passed for each spacecraft)
+; the commands supported by the dispatcher, and the formula for calculating the passage
+;     of time based on speed, are provided below.
+;
+; buildTimeTracker expects to be given a single list as its parameter, e.g.
+;       (buildTimeTracker ("fred" ("bob" 10) ("joe" 23)))
+;     assumes first name in list must be a string, giving a name for the home planet
+;     the rest of the list are in pairs, each pair consisting of
+;        (1) a string specifying the name of a spacecraft
+;        (2) a non-negative integer specifying its speed relative to the home planet (in km/s)
+;
+;     the returned dispatcher handles commands as follows:
+;
+;        set a new speed for a spacecraft,
+;            dispatch command is 'Speed, arguments are the name of the spacecraft and new speed
+;                e.g. (funcall Dispatcher 'Speed "Bob" 2500)
+;            returns their updated speed
+;                (if spacecraft or new speed is invalid it doesn't change anything, returns nil)
+;
+;        query what the current time is (seconds since launch) for a spacecraft or home planet
+;            dispatch command is 'CurrentTime, argument is the spacecraft/planet name
+;                e.g. (funcall Dispatcher 'CurrentTime "Bob")
+;            returns current time for that user (seconds since launches)
+;                 (if the user isn't in the list then it returns nil)
+;
+;        specify a new (additional) amount of time that has passed on earth
+;            dispatch command is 'TimePassed, argument is the amount of time that has passed
+;                e.g. (funcall Dispatcher 'TimePassed 100)
+;            calculates and updates each spacecraft's current time
+;                based on their speed relative to the home planet
+;            returns the updated time on the home planet (seconds since launches)
+;                (if the new time is invalid then it doesn't change the times, returns nil)
+;
+;            the time computation for spacecraft is as follows:
+;                if N seconds pass on the home planet while the craft is travelling at speed S
+;                   then the time that passes for them is N * sqrt(1 - (S*S/C*C))
+;                   where C = 299792 (approximate speed of light in km/s)
+;                assuming (a) that the speed is expressed relative to the home planet,
+;                     and (b) that I haven't messed up the formula :)
+;
+; example:
+;  setting up a dispatcher for a home planet named Max and three spacecraft
+;     (defvar TT (buildTimeTracker ("Max" ("Ivan" 12300) ("Zalika" 61000) ("Emma" 37200))))
+;  calls utilizing the dispatcher
+;     (defvar r (funcall TT 'TimePassed 1000)            ; 1000 seconds have passed on earth
+;     (setf   r (funcall TT 'CurrentTime "Emma"))        ; lookup Emma's current time
+;     (setf   r (funcall TT 'Speed "Zalika" 12345))      ; set Zalika's new speed to 12345 km/s
 
-; the let block has an internal counter, i, initialized to 0
-; the return value from the let block is a function
-;     whose purpose is to increment the counter
-; here we're setting upd to this returned function
-(setf upd (let ((i 0)) (lambda () (incf i))))
-
-; each time we call the function (through variable upd)
-;   it increments the "hidden" counter
-(format t "calling (upd): ~A~%" (funcall upd))
-(format t "    and again: ~A~%" (funcall upd))
-(format t "    and again: ~A~%" (funcall upd))
-(format t "    and again: ~A~%" (funcall upd))
+(defun buildTimeTracker (L)
+    (let
+      ( ; local vars
+      ; For each spaceship there wil be a list containing these variables.
+      ; Spaceship name
+      ; Spaceship current time
+      ; Spacship speed
+      ; a linked list: name -> time -> speed ?
 
 
-; applying let over lambda to create and manipulate objects
-; ---------------------------------------------------------
-; the pointBuilder initializes and x,y point at 0,0
-;     and return a function that allows the user to
-;     move the point around the x,y plane
-(defun pointBuilder ()
-   (let ; initialize the point's location
-        ((x 0) (y 0))
-      ; the lambda function allows the user to supply commands to:
-      ;     get the point's current coordinates
-      ;     move the point a certain amount in the x,y plane
-      ;     jump the point to specific new coordinates
-      ;     supply a command to return the current coordinates,
-      (lambda (command &optional (xval 0) (yval 0))
-          (cond
-             ((equalp command 'move) 
-               (progn (setf x (+ x xval)) (setf y (+ y yval)) (list x y)))
-             ((equalp command 'jump) 
-               (progn (setf x xval) (setf y yval) (list x y)))
-             ((equalp command 'get) 
-               (list x y))
-             (t (progn (format t "Invalid command ~A~%" command) (list x y)))
-           ))))
+      ; Plan: Make a 2d array columns depend on how many spacecraft are in the second list.
+      ;       There will be 3 rows - first name, then time, then speed.
+      ;
+      ;        Sketch :  Louis ---- Zoey ---- Bill ---- Francis
+      ;                    |          |         |          |
+      ;                   Time       Time      Time      Time
+      ;                    |          |         |          |
+      ;                   Speed      Speed    Speed      Speed
+      ;
+      ; Consult "lists, sequences, arrays, vectors" pdf 
+      ;
+      ; for each spacecraft, it tracks the speed relative to the home planet (in km/s)
+      ;     and the time that has elapsed since launch for that spacecraft,
+      ;     accounting for time dilation (the time that has passed on the home planet will
+      ;     be greater than the time passed for each spacecraft)
+
+      )
+         (labels ( ; local methods. Remember, label is part of let. It's inside.
+
+            ; REMEMBER: CHECK THE PARAMETER DATA TYPES FIRST YOU FORGOT THIS IN THE LAST LAB.
+            (Speed (name new_speed) ; Expects two vars, first a string, second an int
+
+            ;        set a new speed for a spacecraft,
+            ;            dispatch command is 'Speed, arguments are the name of the spacecraft and new speed
+            ;                e.g. (funcall Dispatcher 'Speed "Bob" 2500)
+            ;         ----------> Just changes the spacecraft speed <---------------------
+            ;            returns their updated speed
+            ;                (if spacecraft or new speed is invalid it doesn't change anything, returns nil)
+
+            )
+
+            ; REMEMBER: CHECK THE PARAMETER DATA TYPES FIRST YOU FORGOT THIS IN THE LAST LAB.
+            (CurrentTime (name)   ; First check if passed is string. Returns current time of ship.
+
+            ;        query what the current time is (seconds since launch) for a spacecraft or home planet
+            ;            dispatch command is 'CurrentTime, argument is the spacecraft/planet name
+            ;                e.g. (funcall Dispatcher 'CurrentTime "Bob")
+            ;            returns current time for that user (seconds since launches)
+            ;        ----------> Just returns the current_time of that spacecraft <----------------
+            ;                 (if the user isn't in the list then it returns nil)
+
+            )
 
 
-; try out the point manipulator on a couple of points
-(format t "~%Working on pointBuilder example~%")
-(setf p1 (pointBuilder))
-(setf p2 (pointBuilder))
-(format t "p1 current location: ~A~%" (funcall p1 'get))
-(format t "p2 current location: ~A~%" (funcall p2 'get))
-(format t "p1 new location: ~A~%" (funcall p1 'move 3 10))
-(format t "p1 new location: ~A~%" (funcall p1 'move 2 -1))
-(format t "p2 new location: ~A~%" (funcall p2 'jump -3 4))
+            ; REMEMBER: CHECK THE PARAMETER DATA TYPES FIRST YOU FORGOT THIS IN THE LAST LAB.
+            (TimePassed (new_time)   ; First check if passed var is int.
 
-; --- Why it works ---
-; lisp actually allocates lists on the heap,
-;    list variables and parameters are really just references into the heap
-; lisp keeps track of whether lists are being referenced or not,
-;    and doesn't reclaim their heap space until they are no longer referenced by anything
-; parameter lists and local variable lists (in let blocks)
-;    are themselves just lists, referenced from the stack for the active function
-; the lambda functions above reference the lists of parameters/local variables,
-;    hence even when the "constructor" function ends, the heap space for
-;    those lists is not released, effectively giving the lambda functions
-;    sole access to a private chunk of the heap
-; (when the lambda functions go out of scope the heap space is reclaimed)
+            ;        specify a new (additional) amount of time that has passed on earth
+            ;            dispatch command is 'TimePassed, argument is the amount of time that has passed
+            ;                e.g. (funcall Dispatcher 'TimePassed 100)
+            ;    ----------> calculates and updates each spacecraft's current time <----------------
+            ;    ----------> So TimePassed updates each spacecraft's current_time variable <----------------
+            ;                based on their speed relative to the home planet
+            ;            returns the updated time on the home planet (seconds since launches)
+            ;                (if the new time is invalid then it doesn't change the times, returns nil)
+
+
+
+            )
+
+         )
+              ; building and returning dispatcher
+              (lambda (cmd arg1 &optional (arg2 nil))
+                     ; This is where you check the validity of what buildTimeTracker receives (a name, then a list of pairs)
+
+                  (format t "I am a dispatcher~%")))))
+
+; macro exercise
+; --------------
+; create a set of macros that lets the programmer use the following
+;
+;   (setTime TT n) to set a new time on the home planet,
+;        assuming TT is a dispatcher returned by a call to buildTimeTracker,
+;        e.g. (defvar X (buildTimeTracker ...regular args....))
+;             (setTime X 10000)      ; becomes (funcall X 'TimePassed 10000)
+;
+;   (getTime TT u) to query the current time for the specified spacecraft,
+;        e.g. (getTime X "bob")      ; becomes (funcall X 'CurrentTime "bob")
+;
+;   (setSpeed TT s) to set a new speed for the specified spacecraft,
+;        e.g. (setSpeed X "Max" 500) ; becomes (funcall X 'Speed "Max" 500)
+
+(defmacro setTime (Dispatcher NewTime)
+   `(format t "I am the result of a setTime macro~%"))
+
+(defmacro getTime (Dispatcher Spacecraft)
+   `(format t "I am the result of a getTime macro~%"))
+
+(defmacro setSpeed (Dispatcher Spacecraft NewSpeed)
+   `(format t "I am the result of a setSpeed macro~%"))
+
+
