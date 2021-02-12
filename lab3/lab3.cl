@@ -8,7 +8,7 @@
 ;     and the time that has elapsed since launch for that spacecraft,
 ;     accounting for time dilation (the time that has passed on the home planet will
 ;     be greater than the time passed for each spacecraft)
-; the commands supported be the dispatcher, and the formula for calculating the passage
+; the commands supported by the dispatcher, and the formula for calculating the passage
 ;     of time based on speed, are provided below.
 ;
 ; buildTimeTracker expects to be given a single list as its parameter, e.g.
@@ -56,8 +56,59 @@
 ;     (setf   r (funcall TT 'Speed "Zalika" 12345))      ; set Zalika's new speed to 12345 km/s
 
 (defun buildTimeTracker (L)
-    (let ( )         ; local vars
-         (labels ( ) ; local methods
+    (let 
+      ( ; local vars
+      ; For each spaceship there wil be a list containing these variables.
+      ; Spaceship name
+      ; Spaceship current time 
+      ; Spacship speed
+
+
+      ; for each spacecraft, it tracks the speed relative to the home planet (in km/s)
+      ;     and the time that has elapsed since launch for that spacecraft,
+      ;     accounting for time dilation (the time that has passed on the home planet will
+      ;     be greater than the time passed for each spacecraft)
+
+      )            
+         (labels ( ; local methods. Remember, label is part of let. It's inside.
+
+            (Speed () ; Expects two vars, first a string, second an int
+            
+            ;        set a new speed for a spacecraft,
+            ;            dispatch command is 'Speed, arguments are the name of the spacecraft and new speed
+            ;                e.g. (funcall Dispatcher 'Speed "Bob" 2500)
+            ;            returns their updated speed
+            ;                (if spacecraft or new speed is invalid it doesn't change anything, returns nil)
+            
+            )     
+
+            (CurrentTime ()   ; First check if passed is string. Returns current time of ship.
+
+            ;        query what the current time is (seconds since launch) for a spacecraft or home planet
+            ;            dispatch command is 'CurrentTime, argument is the spacecraft/planet name
+            ;                e.g. (funcall Dispatcher 'CurrentTime "Bob")
+            ;            returns current time for that user (seconds since launches)
+            ;        ----------> Just returns the current_time of that spacecraft <----------------
+            ;                 (if the user isn't in the list then it returns nil)
+            
+            )                                 
+
+            (TimePassed ()   ; First check if passed var is int.
+            
+            ;        specify a new (additional) amount of time that has passed on earth
+            ;            dispatch command is 'TimePassed, argument is the amount of time that has passed
+            ;                e.g. (funcall Dispatcher 'TimePassed 100)
+            ;    ----------> calculates and updates each spacecraft's current time <----------------
+            ;    ----------> So TimePassed updates each spacecraft's current_time variable <----------------
+            ;                based on their speed relative to the home planet
+            ;            returns the updated time on the home planet (seconds since launches)
+            ;                (if the new time is invalid then it doesn't change the times, returns nil)
+            
+               
+            
+            )   
+
+         ) 
               ; building and returning dispatcher
               (lambda (cmd arg1 &optional (arg2 nil))
                   (format t "I am a dispatcher~%")))))
