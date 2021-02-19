@@ -40,12 +40,6 @@
 ;            returns the updated time on the home planet (seconds since launches)
 ;                (if the new time is invalid then it doesn't change the times, returns nil)
 ;
-;            the time computation for spacecraft is as follows:
-;                if N seconds pass on the home planet while the craft is travelling at speed S
-;                   then the time that passes for them is N * sqrt(1 - (S*S/C*C))
-;                   where C = 299792 (approximate speed of light in km/s)
-;                assuming (a) that the speed is expressed relative to the home planet,
-;                     and (b) that I haven't messed up the formula :)
 ;
 ; example:
 ;  setting up a dispatcher for a home planet named Max and three spacecraft
@@ -176,8 +170,6 @@
                (if (nth-value 1 (gethash sc_name fleet_table))
                     ; If we're in this let block, that means we found a value for our key.
                    (let ()
-                     (format t "Value of ~A is ~A~%" sc_name (gethash sc_name fleet_table))
-
                      ; We need a time variable to temporarily hold our spacecraft's elapsed time.
                      ; Then it gets restored to the new list that we build for the value of our
                      ; spacecraft's new speed and elapsed time.
@@ -194,8 +186,25 @@
 
             )
 
-            (lookUpTime ()  ; First check if passed is string. Returns current time of ship.
+            (lookUpTime (name_input)  ; First check if passed is string. Returns current time of ship.
                (format t "In check_time~%")
+
+               (if (equalp name_input planet_name) 
+                  (let ()
+                     (format t "Planet time is: ~A~%" time_elapsed)
+                     (return-from lookUpTime time_elapsed)
+                  )   
+               )
+
+               (if (nth-value 1 (gethash name_input fleet_table))
+                    ; If we're in this let block, that means we found a value for our key.
+                   (let ()
+
+                     (return-from lookUpTime (second (gethash name_input fleet_table)))
+                   )
+
+                   (format t "Table does not contain ~A~%" name_input)
+               )
 
             ;        query what the current time is (seconds since launch) for a spacecraft or home planet
             ;            dispatch command is 'CurrentTime, argument is the spacecraft/planet name
@@ -206,12 +215,15 @@
 
             )
 
+            
+
             (calcTime (given_time given_speed) 
-            
-               (return-from calcTime 20)
-               ; 
-               ; Lambda function goes here.
-            
+               ; We've already done all the necessary
+               ; prior checks for the input data in the
+               ; function that called this.
+               ; So all we really need is this one-liner
+               (* given_time (sqrt (- 1 (/ (* given_speed given_speed) (* light_speed_kms light_speed_kms)))))
+           
             )
 
             (time_passed (input_time)   ; First check if passed var is int.
@@ -236,14 +248,13 @@
 
                   (format t "Input time passed all checks! ~%")
                   (setf time_elapsed (+ time_elapsed input_time))
-                  (format t "New home planet time is: ~A ~%" time_elapsed)
+                  (format t "New home planet time: ~A ~%" time_elapsed)
 
                   ; We're going to look through each value of the spacecraft's, 
                   ; 
                   (loop for key being the hash-keys of fleet_table collect 
                      (let ()
 
-                        (format t "~A~%" (gethash key fleet_table))
 
                         ; Getting speed, so we can put it back when we build the
                         ; new list that will be the value for some spacecraft
@@ -252,38 +263,27 @@
                         
                         ; Getting old time, we need this
                         (setf old_time (second (gethash key fleet_table)))
-                        
-                        (setf (second (gethash key fleet_table)) 
-                           (list speed (+ old_time (calcTime input_time speed))) ; Done you just need to implement time dilation
-                        
-                        ) 
-                        
-                        
-                         
 
+                        (setf (second (gethash key fleet_table)) 
+                           (+ old_time (calcTime input_time speed)) ; Calling time dilation formula
+                        ) 
                      )
                   )
 
-                  ;(setf list_to_update (loop for key being the hash-keys of fleet_table collect
-                  ;(list key (gethash key fleet_table))))
-                  ;(format t "~A%" list_to_update)
-                  ;(dolist (val list_to_update) 
-                  ;
-                  ;   (format t "~A~%" (second val)))
-                  ;
+                  (print_all)
+
                   (return-from time_passed time_elapsed)
-
-
   
             )  ; Closing for time_passed
-
-
 
          )
 
 
          ;  Call local methods here.
          (initialize)
+         (lookUpTime "PATHOS-III")
+         (lookUpTime "Faith")
+
 
 
               ; building and returning dispatcher
@@ -292,7 +292,7 @@
 
                   (cond
                      ((equalp cmd 'TimePassed) (time_passed arg1))
-                     ((equalp cmd 'CurrentTime) (lookUpTime))
+                     ((equalp cmd 'CurrentTime) (lookUpTime arg1))
                      ((equalp cmd 'Speed) (set_new_speed arg1 arg2))
 
                      (t (format t "Error: invalid command"))

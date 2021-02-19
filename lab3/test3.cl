@@ -40,9 +40,9 @@
 ;
 ;; ERROR CHECKS END HERE
 ;(format t "~%Giving dispatcher a valid planet name~%")
-(defvar TF (buildTimeTracker '("PATHOS-III" ("Iota" 12345) ("Phi" 67890) ("Sigma" 45678))))
+(defvar TF (buildTimeTracker '("PATHOS-III" ("Iota" 32700) ("Phi" 67890) ("Sigma" 45678))))
 ;(format t "~%Changing speed of Iota~%")
-;
+;;
 ;(format t "~A~%" (funcall TF 'Speed "Iota" 450000))
 ;
 ;
@@ -56,11 +56,12 @@
 ; Good inputs
 (format t "~%Setting planet time passed to 1000~%")
 (defvar r (funcall TF 'TimePassed 1000))
-(format t "Result is ~A~%" r)
+(format t "~A~%" (funcall TF 'Speed "Phi" 10))
+(defvar s (funcall TF 'TimePassed 1000))
 
 
-
-
+; Grabbing time of Planet and a Spacecraft
+(format t "~A~%" (funcall TF 'CurrentTime "Iota"))
 
 
 ;(format t "~%Looking up time for Ivan~%")
