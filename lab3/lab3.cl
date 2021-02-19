@@ -56,61 +56,145 @@
 ;     (setf   r (funcall TT 'Speed "Zalika" 12345))      ; set Zalika's new speed to 12345 km/s
 
 (defun buildTimeTracker (L)
-    (let    
+    (let
 
          (  ; First element of let are "bindings" - list of variables
             (fleet_list '())
             (planet_name "")
+            (fleet_table (make-hash-table :test 'equal))
+            ; (fleet_table (make-hash-table :test 'equal :size ((- (length L) 1)))   ) Doesn't work fix later
             (time_elapsed 0) ; The time elapsed on our home planet
+            (light_speed_kms 299792)
+            ; hash tables with names (make-hash-table). Use (strings) as keys
+            ; so create using (make-hash-table :test 'equal)
+            ; values for each are a pair (speed elapsed time)
          )
-
 
          ; The rest of the elements are the "body" of let.
          ; A check on L, if it's empty there's nothing to do.
-         (if (null L) (return-from buildTimeTracker nil)) ; Also check 
+         (if (null L) (return-from buildTimeTracker nil)) ; Also check
 
          ; Check if head of L is string, if it is, then it becomes the planet name.
-         (if (stringp (first L)) (setf planet_name (first L)))
 
-         ; Check if tail of L has something, if it is, then they are the fleet.
-         (if (not (null (cdr L))) (setf fleet_list (cdr L)))
+         (cond
+            ((not (stringp (first L)))
+               (block
+                  pname_error_block_1
+                  (format t "Invalid planet name! Name: ~A~%" (first L))
+                  (return-from buildTimeTracker 'Error)
+               )
+            )
 
-         (format t "Building dispatcher. Planet name: ~A~%" planet_name)
-         (format t "Spacecraft name(s): ~A~%" fleet_list)
+            ((= (length (first L)) 0)
+               (block
+                  pname_error_block_2
+                  (format t "Problem with formatting. Planet name is an empty string~%")
+                  (return-from buildTimeTracker 'Error)
+               ))
+         )
+
+         (setf planet_name (first L))
+         (format t "~%Planet name: ~A~%" planet_name)
 
 
-                
-         (labels ( 
+
+
+         (labels (
+
+            (initialize ()
+               (format t "In initialize..~%")
+
+               ; Check if tail of L has something, if it is, then they are the fleet.
+               (if (not (null (cdr L))) (setf fleet_list (cdr L)))
+
+               ; Loop that inserts fleet into hash table
+               (dolist (element fleet_list)
+
+                  (cond
+                     ((not (stringp (first element)))
+                        (let ()
+                           (format t "Problem with formatting. Invalid ship name~% ~A~" (first element))
+                           (return-from initialize 'Error)
+                        ))
+
+                     ((= (length (first element )) 0)
+                        (let ()
+                           (format t "Problem with formatting. Ship name is an empty string~%")
+                           (return-from initialize 'Error)
+                        ))
+
+                     ((not (realp (second element)))
+                        (let ()
+                           (format t "Problem with formatting. Ship speed isn't a real number: ~A~~%" (second element))
+                           (return-from initialize 'Error)
+                        ))
+
+                     (t
+                        (setf (gethash (first element) fleet_table) (list (second element) 0))
+                        )
+                  )
+
+               )
+
+               (print_all)
+            )
+
+            (print_all ()
+               (format t "Printing hash table..~%")
+               (format t "~A~%"
+                  (loop for key being the hash-keys of fleet_table collect
+                  (list key (gethash key fleet_table))
+                  )
+               )
+            )
 
             (set_new_speed (sc_name new_speed) ; Expects two vars, first a string, second an int
 
-               (format t "In set_new_speed~%")
                (cond
-                  ((not (stringp sc_name)) nil)
-                  ((not (realp new_speed)) nil)
+                  ; Check that the given spacecraft name is string.
+                  ((not (stringp sc_name))
+                     (let ()
+                           (format t "Ship name is not a string!~%")
+                           (return-from set_new_speed nil)
+                     ))
+
+                  ; Check that the given spacecraft speed is int.
+                  ((not (realp new_speed))
+                     (let ()
+                           (format t "Ship speed is not a real number!~%")
+                           (return-from set_new_speed nil)
+                     ))
+
+                  ; Check that the given spacecraft speed is greater than 0.
+                  ((not (> new_speed 0))
+                     (let ()
+                           (format t "Ship speed 0 or negative!~%")
+                           (return-from set_new_speed nil)
+                     ))
                )
-               
-               (dolist (el fleet_list)
-                  (cond 
-                     ((equal (first el) sc_name) 
-                        (block update_speed
-                           (setf (second el) new_speed)
-                           (return-from set_new_speed (second el))
-                        )
-                     )
-                  )
+
+               (if (nth-value 1 (gethash sc_name fleet_table))
+                    ; If we're in this let block, that means we found a value for our key.
+                   (let ()
+                     (format t "Value of ~A is ~A~%" sc_name (gethash sc_name fleet_table))
+
+                     ; We need a time variable to temporarily hold our spacecraft's elapsed time.
+                     ; Then it gets restored to the new list that we build for the value of our
+                     ; spacecraft's new speed and elapsed time.
+                     (setf time (second (gethash sc_name fleet_table)))
+
+                     (setf (gethash sc_name fleet_table) (list new_speed time))
+                     (return-from set_new_speed new_speed)
+
+                   )
+
+                   (format t "Table does not contain ~A~%" sc_name)
                )
 
 
+            )
 
-               (format t "Spacecraft is ~A.~%New speed is ~A~%" sc_name new_speed)
-               (dolist (el fleet_list); Debug statement that prints the fleet list.
-                  (format t "~A~%" el))
-
-               
-            )     
-
-            (check_time ()  ; First check if passed is string. Returns current time of ship.
+            (lookUpTime ()  ; First check if passed is string. Returns current time of ship.
                (format t "In check_time~%")
 
             ;        query what the current time is (seconds since launch) for a spacecraft or home planet
@@ -120,30 +204,95 @@
             ;        ----------> Just returns the current_time of that spacecraft <----------------
             ;                 (if the user isn't in the list then it returns nil)
 
-            )                                 
+            )
 
-            (time_passed ()   ; First check if passed var is int.
-                  (format t "In time_passed~%")
-            )  
+            (calcTime (given_time given_speed) 
+            
+               (return-from calcTime 20)
+               ; 
+               ; Lambda function goes here.
+            
+            )
+
+            (time_passed (input_time)   ; First check if passed var is int.
+                  ; Adds to the home planet time.
+                  ; Adds time all the spacecraft based on their speed (using time dilation formula)
+
+                  (cond
+                     ; Check that the given time is int.
+                     ((not (realp input_time))
+                        (let ()
+                              (format t "Provided time is not a real number!~%")
+                              (return-from time_passed nil)
+                        ))
+
+                     ; Check that the given spacecraft speed is greater than 0.
+                     ((not (> input_time 0))
+                        (let ()
+                              (format t "Provided time 0 or negative!~%")
+                              (return-from time_passed nil)
+                        ))
+                  )
+
+                  (format t "Input time passed all checks! ~%")
+                  (setf time_elapsed (+ time_elapsed input_time))
+                  (format t "New home planet time is: ~A ~%" time_elapsed)
+
+
+                  (loop for key being the hash-keys of fleet_table collect 
+                     (let ()
+                        (format t "~A~%" (gethash key fleet_table))
+                        (setf speed (first (gethash key fleet_table)))
+                        (setf old_time (second (gethash key fleet_table)))
+                        
+                        (setf (second (gethash key fleet_table)) 
+                           (list speed (+ old_time (calcTime input_time speed))) ; Done you just need to implement time dilation
+                        
+                         ) ; Do some shit to replace the add part 
+                        
+                        
+                         
+
+                     )
+                  )
+
+                  ;(setf list_to_update (loop for key being the hash-keys of fleet_table collect
+                  ;(list key (gethash key fleet_table))))
+                  ;(format t "~A%" list_to_update)
+                  ;(dolist (val list_to_update) 
+                  ;
+                  ;   (format t "~A~%" (second val)))
+                  ;
+                  (return-from time_passed time_elapsed)
+
+
+  
+            )  ; Closing for time_passed
+
 
 
          )
 
-          
+
+         ;  Call local methods here.
+         (initialize)
+
+
               ; building and returning dispatcher
                (lambda (cmd arg1 &optional (arg2 nil))
                   ;(format t "I am a dispatcher~%")
-                  
-                  (cond 
-                     ((equalp cmd 'TimePassed) (time_passed))
-                     ((equalp cmd 'CurrentTime) (check_time))
+
+                  (cond
+                     ((equalp cmd 'TimePassed) (time_passed arg1))
+                     ((equalp cmd 'CurrentTime) (lookUpTime))
                      ((equalp cmd 'Speed) (set_new_speed arg1 arg2))
+
                      (t (format t "Error: invalid command"))
-                  
+
                   )
                ) ; Closing for lambda
          ) ; Closing for labels
-   ) ; Closing for let    
+   ) ; Closing for let
 ) ; Closing for defun
 
 
