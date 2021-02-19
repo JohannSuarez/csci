@@ -238,17 +238,25 @@
                   (setf time_elapsed (+ time_elapsed input_time))
                   (format t "New home planet time is: ~A ~%" time_elapsed)
 
-
+                  ; We're going to look through each value of the spacecraft's, 
+                  ; 
                   (loop for key being the hash-keys of fleet_table collect 
                      (let ()
+
                         (format t "~A~%" (gethash key fleet_table))
+
+                        ; Getting speed, so we can put it back when we build the
+                        ; new list that will be the value for some spacecraft
                         (setf speed (first (gethash key fleet_table)))
+
+                        
+                        ; Getting old time, we need this
                         (setf old_time (second (gethash key fleet_table)))
                         
                         (setf (second (gethash key fleet_table)) 
                            (list speed (+ old_time (calcTime input_time speed))) ; Done you just need to implement time dilation
                         
-                         ) ; Do some shit to replace the add part 
+                        ) 
                         
                         
                          
