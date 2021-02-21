@@ -1,4 +1,3 @@
-
 ; let-over-labels exercise
 ; ------------------------
 ; the goal is to write a function, buildTimeTracker, that creates and returns a dispatcher
@@ -88,15 +87,13 @@
          )
 
          (setf planet_name (first L))
-         (format t "~%Planet name: ~A~%" planet_name)
-
 
 
 
          (labels (
 
             (initialize ()
-               (format t "In initialize..~%")
+
 
                ; Check if tail of L has something, if it is, then they are the fleet.
                (if (not (null (cdr L))) (setf fleet_list (cdr L)))
@@ -130,7 +127,7 @@
 
                )
 
-               (print_all)
+
             )
 
             (print_all ()
@@ -176,6 +173,8 @@
                      (setf time (second (gethash sc_name fleet_table)))
 
                      (setf (gethash sc_name fleet_table) (list new_speed time))
+                     (print_all)
+
                      (return-from set_new_speed new_speed)
 
                    )
@@ -187,13 +186,27 @@
             )
 
             (lookUpTime (name_input)  ; First check if passed is string. Returns current time of ship.
-               (format t "In check_time~%")
 
-               (if (equalp name_input planet_name) 
+
+               (cond
+                     ((not (stringp name_input))
+                        (let ()
+                           (format t "Problem with formatting. Invalid planet/ship name~% ~A~" (first name_input))
+                           (return-from lookUpTime'Error)
+                        ))
+
+                     ((= (length name_input) 0)
+                        (let ()
+                           (format t "Problem with formatting. Planet/Ship name is an empty string~%")
+                           (return-from lookUpTime 'Error)
+                        ))
+               )
+
+               (if (equalp name_input planet_name)
                   (let ()
                      (format t "Planet time is: ~A~%" time_elapsed)
                      (return-from lookUpTime time_elapsed)
-                  )   
+                  )
                )
 
                (if (nth-value 1 (gethash name_input fleet_table))
@@ -215,15 +228,15 @@
 
             )
 
-            
 
-            (calcTime (given_time given_speed) 
+
+            (calcTime (given_time given_speed)
                ; We've already done all the necessary
                ; prior checks for the input data in the
                ; function that called this.
                ; So all we really need is this one-liner
                (* given_time (sqrt (- 1 (/ (* given_speed given_speed) (* light_speed_kms light_speed_kms)))))
-           
+
             )
 
             (time_passed (input_time)   ; First check if passed var is int.
@@ -246,13 +259,11 @@
                         ))
                   )
 
-                  (format t "Input time passed all checks! ~%")
                   (setf time_elapsed (+ time_elapsed input_time))
-                  (format t "New home planet time: ~A ~%" time_elapsed)
 
-                  ; We're going to look through each value of the spacecraft's, 
-                  ; 
-                  (loop for key being the hash-keys of fleet_table collect 
+                  ; We're going to look through each value of the spacecraft's,
+                  ;
+                  (loop for key being the hash-keys of fleet_table collect
                      (let ()
 
 
@@ -260,20 +271,20 @@
                         ; new list that will be the value for some spacecraft
                         (setf speed (first (gethash key fleet_table)))
 
-                        
+
                         ; Getting old time, we need this
                         (setf old_time (second (gethash key fleet_table)))
 
-                        (setf (second (gethash key fleet_table)) 
+                        (setf (second (gethash key fleet_table))
                            (+ old_time (calcTime input_time speed)) ; Calling time dilation formula
-                        ) 
+                        )
                      )
                   )
 
-                  (print_all)
 
+                  ;(print_all)
                   (return-from time_passed time_elapsed)
-  
+
             )  ; Closing for time_passed
 
          )
@@ -281,14 +292,11 @@
 
          ;  Call local methods here.
          (initialize)
-         (lookUpTime "PATHOS-III")
-         (lookUpTime "Faith")
-
 
 
               ; building and returning dispatcher
                (lambda (cmd arg1 &optional (arg2 nil))
-                  ;(format t "I am a dispatcher~%")
+
 
                   (cond
                      ((equalp cmd 'TimePassed) (time_passed arg1))
@@ -319,13 +327,16 @@
 ;   (setSpeed TT s) to set a new speed for the specified spacecraft,
 ;        e.g. (setSpeed X "Max" 500) ; becomes (funcall X 'Speed "Max" 500)
 
-;(defmacro setTime (Dispatcher NewTime)
-;   `(format t "I am the result of a setTime macro~%"))
-;
-;(defmacro getTime (Dispatcher Spacecraft)
-;   `(format t "I am the result of a getTime macro~%"))
-;
-;(defmacro setSpeed (Dispatcher Spacecraft NewSpeed)
-;   `(format t "I am the result of a setSpeed macro~%"))
+(defmacro setTime (Dispatcher NewTime)
+   `(funcall ,Dispatcher 'TimePassed ,NewTime))
+   ;`(format t "I am the result of a setTime macro~%")
+
+(defmacro getTime (Dispatcher Spacecraft)
+   `(funcall ,Dispatcher 'CurrentTime ,Spacecraft))
+   ;`(format t "I am the result of a getTime macro~%"))
+
+(defmacro setSpeed (Dispatcher Spacecraft NewSpeed)
+   `(funcall ,Dispatcher 'Speed ,Spacecraft ,NewSpeed))
+   ;`(format t "I am the result of a setSpeed macro~%"))
 
 
