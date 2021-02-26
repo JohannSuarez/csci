@@ -74,7 +74,7 @@
                (block
                   pname_error_block_1
                   (format t "Invalid planet name! Name: ~A~%" (first L))
-                  (return-from buildTimeTracker 'Error)
+                  (return-from buildTimeTracker nil)
                )
             )
 
@@ -82,7 +82,7 @@
                (block
                   pname_error_block_2
                   (format t "Problem with formatting. Planet name is an empty string~%")
-                  (return-from buildTimeTracker 'Error)
+                  (return-from buildTimeTracker nil)
                ))
          )
 
@@ -105,19 +105,19 @@
                      ((not (stringp (first element)))
                         (let ()
                            (format t "Problem with formatting. Invalid ship name~% ~A~" (first element))
-                           (return-from initialize 'Error)
+                           (return-from initialize nil)
                         ))
 
                      ((= (length (first element )) 0)
                         (let ()
                            (format t "Problem with formatting. Ship name is an empty string~%")
-                           (return-from initialize 'Error)
+                           (return-from initialize nil)
                         ))
 
                      ((not (realp (second element)))
                         (let ()
                            (format t "Problem with formatting. Ship speed isn't a real number: ~A~~%" (second element))
-                           (return-from initialize 'Error)
+                           (return-from initialize nil)
                         ))
 
                      (t
@@ -192,13 +192,13 @@
                      ((not (stringp name_input))
                         (let ()
                            (format t "Problem with formatting. Invalid planet/ship name~% ~A~" (first name_input))
-                           (return-from lookUpTime'Error)
+                           (return-from lookUpTime nil)
                         ))
 
                      ((= (length name_input) 0)
                         (let ()
                            (format t "Problem with formatting. Planet/Ship name is an empty string~%")
-                           (return-from lookUpTime 'Error)
+                           (return-from lookUpTime nil)
                         ))
                )
 
