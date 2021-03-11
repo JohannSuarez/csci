@@ -1,0 +1,25 @@
+GIT repository for csci330/lab4
+
+Content
+-------
+A samle lab4.lex and lab4.yacc file plus supporting makefile,
+along with a set of test files in subdirectory "tests"
+and a testing script (tests.sh)
+
+Basic use
+---------
+To test lab4 run "make lab4" then either "./tests.sh"
+   (to test against the five cases in the tests directory
+or "./lab4 < filename" to test on an individual file
+
+Lab instructions
+----------------
+The actual lab requirements and instructions are provided at
+  csci.viu.ca/~wesselsd/courses/csci330/labs/lab4/index.html
+
+Note on sample grammar
+----------------------
+The tokens and grammar rules provided in the sample .lex and .yacc
+files differ significantly from the lab requirements: be sure you
+understand the nature of the changes and additions required.
+

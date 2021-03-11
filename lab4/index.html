@@ -1,0 +1,156 @@
+<html>
+<head><title>CSCI 330: Lab 4 (spring 2021)</title></head>
+<body>
+
+<h3>CSCI 330 Lab 4: grammars, lex, yacc</h3>
+
+For labs 4 and 5 you'll be editing and submitting lex and yacc files,
+compiled using lex and yacc on otter (or the cubs/pups).
+<p></p>
+The actual grammar changes for lab 4 are relatively basic, to give students
+an opportunity to become familiar with the use of lex and yacc.  The lab 5
+lex/yacc work will be significantly more involved.
+<p></p>
+Again, you'll be forking, cloning, editing, and submitting a git repository,
+following the same basic command sequence except it's named lab4 this time.
+
+<p></p><b>Objectives</b><p></p>
+Lab 4 is meant to give you practice with regular expressions, context free grammars,
+and their use in syntax checking source code using tools like lex/flex and yacc/bison.
+<p></p>
+You will be using lex regular expressions to describe the tokens in a language,
+and yacc CFG rules to describe the syntax of the language.
+<p></p>  A makefile is provided
+to allow you to compile your lex and yacc files into a tool that can be used
+to check for syntax errors in user source code, e.g.
+<pre>
+make lab4
+./lab4 < filename
+</pre>
+The lab4 executable processes the specified file content, and displays error messages
+if it detects any syntax errors.  (If no error messages are displayed then it is
+assumed the file contained valid source code under the language rules.)
+
+<p></p><b>Recommended viewing</b><p></p>
+It is strongly recommended that you review the grammar, lex, and yacc slides/videos
+listed for the weeks of Mar 1-5 and 8-12, though for this lab you'll be using a relatively
+simple subset of the lex/yacc features.
+
+<p></p><hr><p></p>
+<p></p><b>Requirements</b><p></p>
+A sample lab4.lex and lab4.yacc files have been provided for you,
+that handle tokens and grammar rules described in the "Token types" and "CFG grammar rules"
+sections below.
+<ul><table border="1"><tr><td>
+<em>Informally:</em> it currently expects user source code to have the form
+<br> <tt>DATASET integer , integer , integer , integer .</tt>
+<br> where there are one or more integers, integers consist of one or more digits (0-9),
+and any amount/form of whitespace is permitted between tokens.
+</td></tr></table></ul>
+<p></p>
+The requirements for the lab are as follows:
+<ul>
+<li> Revise the contents of the lab4.lex file to handle the additional and altered
+token rules described below.
+<li> Revise the contents of the lab4.yacc file to handle the additional and altered
+CFG grammar rules described below.
+<li> Ensure the lab4.lex and lab4.yacc files compile cleanly (no error/warning messages)
+when using "make lab4".
+<li> Revise the contents of the "tests" subdirectory and "tests.sh" script to
+provide some automated testing of your compiled lab4 executable.
+</ul>
+
+<p></p><hr><p></p>
+<p></p><b>Token types</b>(lab4.lex)<p></p>
+The lab4.lex file currently implements the following token types
+<table border="1"><tr><td>Token type</td><td>Token rules</td></tr>
+<tr><td>INTEGER</td><td>one or more digits</td></tr>
+<tr><td>START</td><td>string "DATASET"</td></tr>
+<tr><td>STOP</td><td>string "."</td></tr>
+<tr><td>COMMA</td><td>string ","</td></tr>
+</table>
+<p></p>
+For the revised grammar, INTEGER can no longer begin with a 0
+<br> i.e. the first digit must be in [1-9], then zero or more digits [0-9]
+<p></p>
+For the revised grammar, you need to add additional token types as follows:
+<table border="1"><tr><td>Token type</td><td>Token rules</td></tr>
+<tr><td>POSTAL</td><td>Six characters: alternating alphas [a-zA-Z] then digits [0-9]</td></tr>
+<tr><td>NAME</td><td>One or more alphabetic characters [a-zA-Z]</td></tr>
+<tr><td>SPLIT</td><td>string ":"</td></tr>
+</table>
+Note that you'll likely want to add a new character set for alphabetic characters
+(similar to the current Digit definition), and you'll need to determine
+suitable lex regular expressions for NAME and POSTAL (as well as modifying
+the regex for INTEGER).
+
+<p></p><hr><p></p>
+<p></p><b>CFG grammar rules</b>(lab4.yacc)<p></p>
+The current rules are shown below, showing tokens in UPPERCASE and nonterminals
+in lowercase
+<pre>
+datafile --> START list STOP
+list --> entry
+list --> entry COMMA list
+entry --> INTEGER
+</pre>
+You will be changing the <tt>entry</tt> rule to
+<br><tt> entry --> INTEGER NAME SPLIT POSTAL</tt>
+<br>(This should be a relatively simple alteration in the .yacc file.)
+
+<p></p><hr><p></p>
+<p></p><b>lex and yacc reminders</b><p></p>
+Remember that each token type specified in the .lex file
+needs a corresponding entry in the .yacc file on the tokens line:
+<br> %token&lt;long> INTEGER START etc
+<p></p>
+In the .lex file, don't forget to adjust <tt>col</tt> by the
+number of characters in the token that was read.
+
+<p></p><hr><p></p><b>Testing</b><p></p>
+To get started with testing, here are a few simple examples of valid and invalid source
+code under the grammar.
+<p></p>
+<table border="1">
+<tr><td><b>File</b></td><td><b>Notes</b></td></tr>
+<tr><td colspan="2"><b>Sample valid files</b></td></tr>
+<tr><td><pre>
+DATASET 37 Fred : A1B2C3 .
+</pre></td><td>single entry, all one line</td></tr>
+<tr><td><pre>
+DATASET
+   37
+Fred:A1B2C3     .
+</pre></td><td>single entry, varying whitespace</td></tr>
+<tr><td><pre>
+DATASET
+2047 X : F0X4H8 ,
+37 Fred : A1B2C3 ,
+9 Bob : Z9Z9Z9
+.
+</pre></td><td>multiple entries</td></tr>
+<tr><td colspan="2"><b>Sample invalid files</b></td></tr>
+<tr><td><pre>
+37 Fred : A1B2C3 .
+</pre></td><td>missing DATASET</td></tr>
+<tr><td><pre>
+DATASET
+2047 X : F0X4H8 ,
+37 Fred : A1B2C3 ,
+9 Bob : Z9Z9Z9
+</pre></td><td>missing .</td></tr>
+<tr><td><pre>
+DATASET
+2047 X : F0X4H8 ;
+37 Fred : A1B2C3 ;
+9 Bob : Z9Z9Z9
+.
+</pre></td><td>wrong seperator</td></tr>
+<tr><td><pre>
+DATASET 07 Fred : A1B2C3 .
+</pre></td><td>integer begins with 0</td></tr>
+</table>
+
+
+</body>
+</html>
