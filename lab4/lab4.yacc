@@ -62,11 +62,8 @@ entry: INTEGER
  /* begin parsing */
 int main() {
    int res = yyparse();
-   /*
-      Had to modify this print statement otherwise it kept
-      complaining about " warning: too many arguments for format [-Wformat-extra-args] "
-   */
-   printf("\nCompilation complete: %d \n", res);
+
+   printf("\nCompilation complete:\n", res);
    return(res);
 }
 
