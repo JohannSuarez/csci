@@ -2,7 +2,9 @@
  /* ---- part 1: declarations ---- */
 
  /* part 1a: any character sets we want to identify */
+Alpha [a-zA-Z]
 Digit [0-9]
+Nonzero [1-9]
 
  /* part 1b: the C setup */
 %{
@@ -18,19 +20,32 @@ int row=0;
 %}
 
 %%
-/* Don't touch anything above this */
+ /* Don't touch anything above this */
 
  /* ---- part 2: token rules ---- */
 
  /* integers are 1 or more digits */
  /* Change this rule such that ints cant start with 0 */
-{Digit}+   { col+=strlen(yytext); return(INTEGER); }
+{Nonzero}{Digit}*  { col+=strlen(yytext); return(INTEGER); }
+
+
 
  /* fixed-string tokens */
-"DATASET"    { col+=5; return(START); }
-"."      { col+=3; return(STOP); }
-","        { col++; return(COMMA); }
+"DATASET"   { col+=5; return(START); }
+"."         { col+=3; return(STOP); }
+","         { col++; return(COMMA); }
+":"         { col++; return(SPLIT); }
+
+
  /* Add rules for postal code, name and split */
+ /* These should be written AFTER the rules of fixed string tokens and integers, because these can be matched by an earlier rule */
+
+ /* NAME REGEX */
+({Alpha})+ { col+=strlen(yytext); return(NAME); }
+
+ /* POSTAL REGEX */
+({Alpha}{Digit}{Alpha}{Digit}{Alpha}{Digit}) { col+=strlen(yytext); return(POSTAL); }
+
 
  /* whitespace to skip (newlines treated seperately) */
 [ \t\f\v]  { col++; }
