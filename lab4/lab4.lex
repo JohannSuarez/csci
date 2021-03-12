@@ -34,10 +34,13 @@ int row=0;
 "DATASET"   { col+=5; return(START); }
 "."         { col+=3; return(STOP); }
 ","         { col++; return(COMMA); }
+
+
+ /* Regex for split */
 ":"         { col++; return(SPLIT); }
 
 
- /* Add rules for postal code, name and split */
+ /* Add regexes for postal code and name */
  /* These should be written AFTER the rules of fixed string tokens and integers, because these can be matched by an earlier rule */
 
  /* NAME REGEX */
