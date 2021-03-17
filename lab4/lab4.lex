@@ -31,6 +31,8 @@ int row=0;
 
 
  /* fixed-string tokens */
+ /* Comment: As per Dave's video lecture, keywords should be checked first before identifiers */
+ /* So this is correct */ 
 "DATASET"   { col+=5; return(START); }
 "."         { col+=3; return(STOP); }
 ","         { col++; return(COMMA); }

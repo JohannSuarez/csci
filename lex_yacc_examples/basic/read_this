@@ -1,0 +1,7 @@
+https://www.epaperpress.com/lexandyacc/pry1.html
+
+https://www.epaperpress.com/lexandyacc/prl.html
+
+Variable yytext is a pointer to the matched string (NULL-terminated) and yyleng is the length of the matched string.
+
+yyval is a global varaible that is used to pass the semantic value associated with a token from the lexer to the parser
